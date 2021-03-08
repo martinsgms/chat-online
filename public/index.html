@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat online</title>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+        
+        .sidenav {
+            background-color: #f1f1f1;
+            height: 100%;
+        }
+
+        #mensagens {
+            border: #868B8E solid;
+            border-width: 0.5px;
+            border-radius: 1%;
+            height: 80%;
+            margin-bottom: 1%;
+        }
+
+        footer {
+            background-color: #868B8E;
+            color: white;
+            padding: 15px;
+        }
+        @media screen and (max-width: 767px) {
+        .sidenav {
+            height: auto;
+        }
+        .row.content {height: auto;} 
+        }
+    </style>
+
+</head>
+<body>
+    
+
+    <div class="container-fluid">
+        <div class="row content">
+          <div class="col-sm-3 sidenav">
+            <h4>Usuários online</h4>
+            <hr>
+            
+          </div>
+      
+          <div class="col-sm-9" style="background-color: #FAF7F4;">
+            <h4><small>Sala de bate-papo</small></h4>
+            <hr>
+
+            <div id="messages" class="col-sm-9">
+                
+            </div>
+      
+            <div id="pre-envio" class="col-sm-9" style="height: 10%; padding: 0; margin-bottom: 0">
+                <form id="chat" class="form-inline">
+                    <div class="col-sm-10" style="padding: 0;">
+                        <input type="text" class="form-control" id="messageText" placeholder="Escreva sua mensagem..."
+                        style="width: 100%;">
+                    </div>
+                    <div class="col-sm-2">
+                    <button type="submit" class="btn btn-primary mb-2">Enviar</button>
+                    </div>
+                    </form>
+                </form>
+            </div>
+      
+      
+          </div>
+        
+        </div>
+      </div>
+      
+      <footer class="container-fluid">
+        <p>Footer Text</p>
+      </footer>
+
+    <!-- Definição do Modal Inicial-->
+    <div class="modal fade" id="modalInicial" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"
+        data-backdrop="static" data-keyboard="false">
+
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Informe o seu nome</h5>
+            </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <input type="text" class="form-control" id="author" placeholder="Seu nome aqui" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="submeterNome()"  class="btn btn-primary">Entrar no site</button>
+        </div>
+        </div>
+    </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.2/socket.io.js" integrity="sha512-YybopSVjZU0fe8TY4YDuQbP5bhwpGBE/T6eBUEZ0usM72IWBfWrgVI13qfX4V2A/W7Hdqnm7PIOYOwP9YHnICw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+    <script type="text/javascript"> 
+
+        var author = '';
+        $('.row.content').css('height', $(window).height());
+
+        var modalInicial = $('#modalInicial');
+        modalInicial.modal('show');
+        
+        modalInicial[0].addEventListener('keypress', (e) => {
+            if (e.key == 'Enter')
+                submeterNome();
+        })
+
+        function submeterNome() {
+            author = $('#author').val();
+            $('#modalInicial').modal('hide');
+        }
+        
+        var socket = io('http://localhost:3000');
+
+        $('#chat').submit(e => {
+            e.preventDefault();
+
+            let messageText = $('#messageText').val();
+
+            if (!messageText.length)
+                return;
+
+            let message = {
+                author: author,
+                messageText: messageText,
+                date: Date()
+            }
+            receiveMessage(message)
+            socket.emit('sendMessage', message);
+            
+        });
+        
+        socket.on('receivedMessage', message => {
+            receiveMessage(message);
+        });
+
+        socket.on('previousMessages', messages => {
+            messages.forEach(m => receiveMessage(m));
+        });
+
+        function receiveMessage(message) {
+            $('#messages').append(`<div><b>${message.author}: </b>${message.messageText}</div>`)
+        }
+
+    </script>
+</body>
+</html>
