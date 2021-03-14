@@ -25,6 +25,16 @@ io.on('connection', socket => {
         messages.push(message);
         socket.broadcast.emit('receivedMessage', message);
     })
+
+    socket.on('writing', writer => {
+        let whoIsWriting = `${writer} está digitando...`;
+        socket.broadcast.emit('someoneWriting', whoIsWriting);
+    })
+
+    socket.on('endWriting', () => {
+        socket.broadcast.emit('someoneEndWriting');
+    })
+
 })
 
 server.listen(3000);

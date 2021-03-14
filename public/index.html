@@ -64,6 +64,7 @@
                     <div class="col-sm-2">
                     <button type="submit" class="btn btn-primary mb-2">Enviar</button>
                     </div>
+                    <span id="writer"></p>
                     </form>
                 </form>
             </div>
@@ -87,14 +88,16 @@
         <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Informe o seu nome</h5>
             </div>
+        <form id="coletaNome">
         <div class="modal-body">
             <div class="form-group">
-                <input type="text" class="form-control" id="author" placeholder="Seu nome aqui" required>
+                <input type="text" class="form-control" id="author" placeholder="Seu nome aqui">
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" onclick="submeterNome()"  class="btn btn-primary">Entrar no site</button>
         </div>
+        </form>
         </div>
     </div>
     </div>
@@ -112,14 +115,26 @@
         var modalInicial = $('#modalInicial');
         modalInicial.modal('show');
         
-        modalInicial[0].addEventListener('keypress', (e) => {
+        modalInicial[0].addEventListener('keyup', (e) => {
             if (e.key == 'Enter')
-                submeterNome();
+                submeterNome();               
         })
+
+        $('#coletaNome').submit(e => {
+            e.preventDefault();
+
+            submeterNome();  
+        });
 
         function submeterNome() {
             author = $('#author').val();
-            $('#modalInicial').modal('hide');
+            
+            if (!author) {
+                window.alert('Por favor informe seu nome!')
+            } else {
+                $('#modalInicial').modal('hide');
+            }
+
         }
         
         var socket = io('http://localhost:3000');
@@ -139,6 +154,8 @@
             }
             receiveMessage(message)
             socket.emit('sendMessage', message);
+
+            $('#messageText').val('');
             
         });
         
@@ -153,6 +170,25 @@
         function receiveMessage(message) {
             $('#messages').append(`<div><b>${message.author}: </b>${message.messageText}</div>`)
         }
+
+        $('#messageText').on('keydown', (e) => {
+            if (e.key == 'Enter')
+                return;
+
+            socket.emit('writing', author);
+        });
+
+        $('#messageText').on('keyup', () => {
+            socket.emit('endWriting');
+        })
+
+        socket.on('someoneWriting', writer => {
+            $('#writer').text(writer);
+        });
+
+        socket.on('someoneEndWriting', writer => {
+            setTimeout(() => $('#writer').text(''), 3000);
+        });
 
     </script>
 </body>
