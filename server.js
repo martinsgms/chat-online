@@ -15,11 +15,18 @@ app.use('/', (request, response) => {
 });
 
 let messages = [];
+let users = [];
 
 io.on('connection', socket => {
     console.log(`socket conectado: ${socket.id}`);
 
     socket.emit('previousMessages', messages);
+    socket.emit('usersOnline', users);
+    
+    socket.on('newUser', user => {
+        users.push(user);
+        socket.broadcast.emit('newUserOnline', user);
+    })
 
     socket.on('sendMessage', message => {
         messages.push(message);

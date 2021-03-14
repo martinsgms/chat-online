@@ -45,6 +45,10 @@
             <h4>Usuários online</h4>
             <hr>
             
+            <div id="listaUsuariosOnline">
+                <p id="usuarioAtual"></p>
+            </div>
+
           </div>
       
           <div class="col-sm-9" style="background-color: #FAF7F4;">
@@ -115,11 +119,7 @@
         var modalInicial = $('#modalInicial');
         modalInicial.modal('show');
         
-        modalInicial[0].addEventListener('keyup', (e) => {
-            if (e.key == 'Enter')
-                submeterNome();               
-        })
-
+      
         $('#coletaNome').submit(e => {
             e.preventDefault();
 
@@ -132,12 +132,15 @@
             if (!author) {
                 window.alert('Por favor informe seu nome!')
             } else {
+                socket.emit('newUser', author);
+                $('#usuarioAtual').text(`${author} (Você)`);
                 $('#modalInicial').modal('hide');
             }
 
         }
         
         var socket = io('http://localhost:3000');
+
 
         $('#chat').submit(e => {
             e.preventDefault();
@@ -158,7 +161,7 @@
             $('#messageText').val('');
             
         });
-        
+
         socket.on('receivedMessage', message => {
             receiveMessage(message);
         });
@@ -166,6 +169,19 @@
         socket.on('previousMessages', messages => {
             messages.forEach(m => receiveMessage(m));
         });
+
+        socket.on('usersOnline', users => {
+            users.forEach(u => receiveUser(u));
+        });
+
+        socket.on('newUserOnline', user => {
+            console.log(user)
+            receiveUser(user);
+        });
+
+        function receiveUser(user) {
+            $('#listaUsuariosOnline').append(`<p>${user}</p>`);
+        }
 
         function receiveMessage(message) {
             $('#messages').append(`<div><b>${message.author}: </b>${message.messageText}</div>`)
